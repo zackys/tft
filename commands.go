@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/zackys/go.p/encoding"
-	"github.com/zackys/go.p/file"
-	"github.com/zackys/go.p/file/text"
 	"log"
 	"os"
 )
@@ -65,70 +61,38 @@ func doRmln(c *cli.Context) {
 }
 
 func doAddln(c *cli.Context) {
-	args := c.Args()
-	var err error
-	var fin *os.File
-	if len(args) == 0 {
-		fin = os.Stdin
-	} else {
-		fin, err = os.Open(args[0])
-		if err != nil {
-			panic(err)
-		}
-		defer fin.Close()
-	}
 
-	b := file.NewBytes()
-	err = b.ReadFrom(fin)
-	if err != nil {
-		panic(err)
-	}
-	enc := b.SearchEncoding()
+	txt := newText(c)
 
-	txt := text.New(enc)
-	txt.ReadFrom(b)
+	tf := newTfAddln(c)
+	txt.Transform(tf)
 
-	itr := txt.Iterator()
-	cnt := c.Int("start")
-	step := c.Int("step")
-	format := c.String("format")
+	outEnc := outEnc(c)
 
-	var outEnc encoding.Encoding = encoding.UTF8
-	switch {
-	case c.GlobalBool("s"):
-		outEnc = encoding.ShiftJIS
-	case c.GlobalBool("e"):
-		outEnc = encoding.EUCJP
-	case c.GlobalBool("j"):
-		outEnc = encoding.ISO2022JP
-	case c.GlobalBool("w16"):
-		outEnc = encoding.UTF16BE
-	}
+	fout := fout(c)
+	defer fout.Close()
 
-	outFname := c.GlobalString("O")
+	txt.WriteTo(fout, outEnc)
+}
 
-	var fout *os.File
+type tfAddln struct {
+	step   int
+	format string
 
-	if len(outFname) < 1 {
-		fout = os.Stdout
-	} else {
-		fout, err = os.Create(outFname)
-		if err != nil {
-			panic(err)
-		}
-		defer fout.Close()
-	}
-	writer := bufio.NewWriter(fout)
+	cnt int
+}
 
-	for itr.HasNext() {
-		line := itr.Next()
-		ret := fmt.Sprintf(format, cnt, line)
-		cnt += step
+func newTfAddln(c *cli.Context) *tfAddln {
+	ret := &tfAddln{}
+	ret.cnt = c.Int("start")
+	ret.step = c.Int("step")
+	ret.format = c.String("format")
 
-		bb, _ := outEnc.Encode(ret)
-		writer.Write(bb)
-	}
-	writer.Flush()
+	return ret
+}
 
-	//txt.WriteTo(os.Stdout)
+func (c *tfAddln) Transform(line string) (string, error) {
+	ret := fmt.Sprintf(c.format, c.cnt, line)
+	c.cnt++
+	return ret, nil
 }
