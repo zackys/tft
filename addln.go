@@ -3,23 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"log"
-	"os"
 )
-
-var Commands = []cli.Command{
-	commandGuess,
-	commandRmln,
-	commandAddln,
-}
-
-var commandRmln = cli.Command{
-	Name:  "rmln",
-	Usage: "",
-	Description: `
-`,
-	Action: doRmln,
-}
 
 var commandAddln = cli.Command{
 	Name:  "addln",
@@ -44,21 +28,6 @@ var commandAddln = cli.Command{
 		},
 	},
 	Action: doAddln,
-}
-
-func debug(v ...interface{}) {
-	if os.Getenv("DEBUG") != "" {
-		log.Println(v...)
-	}
-}
-
-func assert(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func doRmln(c *cli.Context) {
 }
 
 func doAddln(c *cli.Context) {
