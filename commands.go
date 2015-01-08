@@ -8,6 +8,7 @@ import (
 )
 
 var Commands = []cli.Command{
+	commandGuess,
 	commandRmln,
 	commandAddln,
 }
@@ -39,7 +40,7 @@ var commandAddln = cli.Command{
 		cli.StringFlag{
 			Name:  "format",
 			Value: "%06d%s",
-			Usage: "format of LineNumber",
+			Usage: "format of LineNumber. %s is the body of line.",
 		},
 	},
 	Action: doAddln,
